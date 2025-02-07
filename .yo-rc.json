@@ -1,0 +1,22 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "16.15.1",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.12.0"
+    },
+    "version": "1.19.0",
+    "libraryName": "spfx-ext-remove-share",
+    "libraryId": "9cd8aad4-345b-4bcd-8b88-50c78e82833d",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "spfx-ext-remove-share",
+    "solutionShortDescription": "spfx-ext-remove-share description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "extension",
+    "extensionType": "ApplicationCustomizer"
+  }
+}

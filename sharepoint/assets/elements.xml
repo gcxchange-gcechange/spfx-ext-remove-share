@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <CustomAction
+        Title="RemoveShareExt"
+        Location="ClientSideExtension.ApplicationCustomizer"
+        ClientSideComponentId="130fa174-9a7b-4106-8898-d52ba015218d"
+        ClientSideComponentProperties="{&quot;testMessage&quot;:&quot;Test message&quot;}">
+    </CustomAction>
+</Elements>
