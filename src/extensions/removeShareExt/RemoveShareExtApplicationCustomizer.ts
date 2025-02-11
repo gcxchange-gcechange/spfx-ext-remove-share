@@ -1,9 +1,3 @@
-/**
- * Written By: Adi Makkar 
- * Objective: To remove the share button on all pages to meet
- * the criteria for Pro B 
- */
-
 import { Log } from '@microsoft/sp-core-library';
 import { BaseApplicationCustomizer } from '@microsoft/sp-application-base';
 import { override } from '@microsoft/decorators';
@@ -11,78 +5,57 @@ import * as strings from 'RemoveShareExtApplicationCustomizerStrings';
 
 const LOG_SOURCE: string = 'RemoveShareExtApplicationCustomizer';
 
-export interface IRemoveShareExtApplicationCustomizerProperties {
-  // no properties required 
-}
+export interface IRemoveShareExtApplicationCustomizerProperties { }
 
-export default class RemoveShareExtApplicationCustomizer
-  extends BaseApplicationCustomizer<IRemoveShareExtApplicationCustomizerProperties> {
+export default class RemoveShareExtApplicationCustomizer extends BaseApplicationCustomizer<IRemoveShareExtApplicationCustomizerProperties> {
 
-  private observer: MutationObserver | undefined = undefined;
-  private shareButton: Element | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
-@override
+  @override
   public onInit(): Promise<void> {
     Log.info(LOG_SOURCE, `Initialized ${strings.Title}`);
 
-    // using polling to see if the button actually loaded
-    this.waitForShareButton();
+    this.startPollingForShareButton();  // need to start polling immediately
 
-    window.addEventListener('beforeunload', () => {
-      this.disconnectObserver();
+    // need to watch the pages for dynamically loaded contents 
+    document.addEventListener('DOMNodeInserted', (event: Event) => {
+      if (event.target instanceof Element) {
+        this.checkForShareButtonAndRemove(event.target); // check for the inserted element
+      }
     });
+
+    window.addEventListener('hashchange', () => { this.restartPolling(); });
+    window.addEventListener('popstate', () => { this.restartPolling(); });
+    window.addEventListener('beforeunload', () => { this.stopPolling(); });
 
     return Promise.resolve();
   }
 
-  private waitForShareButton(): void {
-    this.shareButton = document.querySelector('[data-automation-id="shareButton"]');
-    if (this.shareButton) {
-      this.removeShareButton();
-    } else {
-      // I needed to add this because it is taking forever for the share to load sometimes
-      setTimeout(() => this.waitForShareButton(), 250); // poll every 250ms, should rapidly detect if share is missing
+  private startPollingForShareButton(): void {
+    this.pollingInterval = setInterval(() => {
+      this.checkForShareButtonAndRemove(document.body); // check the entire page periodically because share has a tendency to keep coming up
+    }, 250); // setting the interval to 250ms for efficient removal
+  }
+
+  private stopPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      Log.info(LOG_SOURCE, 'Polling has been stopped');
     }
   }
 
-  private removeShareButton(): void {
-    if (this.shareButton) {
-      this.shareButton.remove();
+  private restartPolling(): void {
+    this.stopPolling();
+    this.startPollingForShareButton();
+  }
+
+
+  private checkForShareButtonAndRemove(element: Element): void {
+    const shareButtons = element.querySelectorAll('[data-automation-id="shareButton"]');
+    shareButtons.forEach(button => {
+      button.remove();
       Log.info(LOG_SOURCE, 'Share button is removed');
-
-       // disconnecting observer to prevent intra and inter ext issues 
-       if (this.observer) {
-         this.disconnectObserver();
-       }
-
-      this.observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node instanceof Element && node.matches('[data-automation-id="shareButton"]')) {
-              node.remove();
-                Log.info(LOG_SOURCE, 'Share button removed dynamically');
-                  // if the button reappears and is removed, disconnect the observer; Will have to restart the polling if you need to handle future reappearances
-                  this.disconnectObserver();
-                  this.waitForShareButton(); // restarting polling for future reappearances 
-              }
-            });
-          })
-         });
-
-      this.observer.observe(document.body, { childList: true, subtree: true });
-
-    } 
-
-    else {
-      Log.info(LOG_SOURCE, 'Share button is not found');  
-    }
-   }
-
-  private disconnectObserver(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-        Log.info(LOG_SOURCE, 'MutationObserver is disconnected');
-      this.observer = undefined;
-    }
+    });
   }
 }
