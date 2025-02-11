@@ -1,39 +1,61 @@
 import { Log } from '@microsoft/sp-core-library';
-import {
-  BaseApplicationCustomizer
-} from '@microsoft/sp-application-base';
-import { Dialog } from '@microsoft/sp-dialog';
-
+import { BaseApplicationCustomizer } from '@microsoft/sp-application-base';
+import { override } from '@microsoft/decorators';
 import * as strings from 'RemoveShareExtApplicationCustomizerStrings';
 
 const LOG_SOURCE: string = 'RemoveShareExtApplicationCustomizer';
 
-/**
- * If your command set uses the ClientSideComponentProperties JSON input,
- * it will be deserialized into the BaseExtension.properties object.
- * You can define an interface to describe it.
- */
-export interface IRemoveShareExtApplicationCustomizerProperties {
-  // This is an example; replace with your own property
-  testMessage: string;
-}
+export interface IRemoveShareExtApplicationCustomizerProperties { }
 
-/** A Custom Action which can be run during execution of a Client Side Application */
-export default class RemoveShareExtApplicationCustomizer
-  extends BaseApplicationCustomizer<IRemoveShareExtApplicationCustomizerProperties> {
+export default class RemoveShareExtApplicationCustomizer extends BaseApplicationCustomizer<IRemoveShareExtApplicationCustomizerProperties> {
 
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
+
+  @override
   public onInit(): Promise<void> {
     Log.info(LOG_SOURCE, `Initialized ${strings.Title}`);
 
-    let message: string = this.properties.testMessage;
-    if (!message) {
-      message = '(No properties were provided.)';
-    }
+    this.startPollingForShareButton();  // need to start polling immediately
 
-    Dialog.alert(`Hello from ${strings.Title}:\n\n${message}`).catch(() => {
-      /* handle error */
+    // need to watch the pages for dynamically loaded contents 
+    document.addEventListener('DOMNodeInserted', (event: Event) => {
+      if (event.target instanceof Element) {
+        this.checkForShareButtonAndRemove(event.target); // check for the inserted element
+      }
     });
 
+    window.addEventListener('hashchange', () => { this.restartPolling(); });
+    window.addEventListener('popstate', () => { this.restartPolling(); });
+    window.addEventListener('beforeunload', () => { this.stopPolling(); });
+
     return Promise.resolve();
+  }
+
+  private startPollingForShareButton(): void {
+    this.pollingInterval = setInterval(() => {
+      this.checkForShareButtonAndRemove(document.body); // check the entire page periodically because share has a tendency to keep coming up
+    }, 250); // setting the interval to 250ms for efficient removal
+  }
+
+  private stopPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      Log.info(LOG_SOURCE, 'Polling has been stopped');
+    }
+  }
+
+  private restartPolling(): void {
+    this.stopPolling();
+    this.startPollingForShareButton();
+  }
+
+
+  private checkForShareButtonAndRemove(element: Element): void {
+    const shareButtons = element.querySelectorAll('[data-automation-id="shareButton"]');
+    shareButtons.forEach(button => {
+      button.remove();
+      Log.info(LOG_SOURCE, 'Share button is removed');
+    });
   }
 }
