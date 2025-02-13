@@ -10,24 +10,18 @@ export interface IRemoveShareExtApplicationCustomizerProperties { }
 export default class RemoveShareExtApplicationCustomizer extends BaseApplicationCustomizer<IRemoveShareExtApplicationCustomizerProperties> {
 
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
+  private mutationObserver: MutationObserver | null = null;
 
   @override
   public onInit(): Promise<void> {
     Log.info(LOG_SOURCE, `Initialized ${strings.Title}`);
 
     this.startPollingForShareButton();  // need to start polling immediately
-
-    // need to watch the pages for dynamically loaded contents 
-    document.addEventListener('DOMNodeInserted', (event: Event) => {
-      if (event.target instanceof Element) {
-        this.checkForShareButtonAndRemove(event.target); // check for the inserted element
-      }
-    });
+    this.observeDomChanges(); // observes DOM changes, using this for Mutation Observer
 
     window.addEventListener('hashchange', () => { this.restartPolling(); });
     window.addEventListener('popstate', () => { this.restartPolling(); });
-    window.addEventListener('beforeunload', () => { this.stopPolling(); });
-
+    window.addEventListener('beforeunload', () => { this.stopPolling(); this.disconnectObserver(); }); // will disconnect the observer 
     return Promise.resolve();
   }
 
@@ -50,6 +44,29 @@ export default class RemoveShareExtApplicationCustomizer extends BaseApplication
     this.startPollingForShareButton();
   }
 
+  private observeDomChanges(): void {
+    this.mutationObserver = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(node => {
+            if (node instanceof Element) {
+              this.checkForShareButtonAndRemove(node);
+            }
+          });
+        }
+      }
+    });
+
+    this.mutationObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  private disconnectObserver(): void {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+      Log.info(LOG_SOURCE, 'MutationObserver disconnected');
+    }
+  }
 
   private checkForShareButtonAndRemove(element: Element): void {
     const shareButtons = element.querySelectorAll('[data-automation-id="shareButton"]');
