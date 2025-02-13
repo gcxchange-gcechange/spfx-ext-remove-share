@@ -16,19 +16,20 @@ export default class RemoveShareExtApplicationCustomizer extends BaseApplication
   public onInit(): Promise<void> {
     Log.info(LOG_SOURCE, `Initialized ${strings.Title}`);
 
-    this.startPollingForShareButton();  // need to start polling immediately
-    this.observeDomChanges(); // observes DOM changes, using this for Mutation Observer
+    this.startPollingForShareButton();
+    this.observeDomChanges();
 
     window.addEventListener('hashchange', () => { this.restartPolling(); });
     window.addEventListener('popstate', () => { this.restartPolling(); });
-    window.addEventListener('beforeunload', () => { this.stopPolling(); this.disconnectObserver(); }); // will disconnect the observer 
+    window.addEventListener('beforeunload', () => { this.stopPolling(); this.disconnectObserver(); });
+
     return Promise.resolve();
   }
 
   private startPollingForShareButton(): void {
     this.pollingInterval = setInterval(() => {
-      this.checkForShareButtonAndRemove(document.body); // check the entire page periodically because share has a tendency to keep coming up
-    }, 250); // setting the interval to 250ms for efficient removal
+      this.checkForShareButtonAndHide(document.body);
+    }, 250);
   }
 
   private stopPolling(): void {
@@ -50,7 +51,7 @@ export default class RemoveShareExtApplicationCustomizer extends BaseApplication
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(node => {
             if (node instanceof Element) {
-              this.checkForShareButtonAndRemove(node);
+              this.checkForShareButtonAndHide(node);
             }
           });
         }
@@ -68,11 +69,15 @@ export default class RemoveShareExtApplicationCustomizer extends BaseApplication
     }
   }
 
-  private checkForShareButtonAndRemove(element: Element): void {
+  private checkForShareButtonAndHide(element: Element): void {
     const shareButtons = element.querySelectorAll('[data-automation-id="shareButton"]');
     shareButtons.forEach(button => {
-      button.remove();
-      Log.info(LOG_SOURCE, 'Share button is removed');
+      if (button instanceof HTMLElement) {
+        button.style.display = 'none';
+        Log.info(LOG_SOURCE, 'Share button is hidden');
+      } else {
+        Log.warn(LOG_SOURCE, 'Element is not an HTMLElement. Cannot hide.');
+      }
     });
   }
 }
