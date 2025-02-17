@@ -4,7 +4,7 @@
 
 spfx-ext-remove-share is an extensions that is responsible for removing the share button from the navigation bar. 
 
-[picture of the solution in action, if possible]
+![CaptureShare](https://github.com/user-attachments/assets/97fab7b0-d4bf-40b0-ac92-1ef64db37af9)
 
 ## Used SharePoint Framework Version
 
