@@ -2,7 +2,7 @@
 
 ## Summary
 
-Short summary on functionality and used technologies.
+spfx-ext-remove-share is an extensions that is responsible for removing the share button from the navigation bar. 
 
 [picture of the solution in action, if possible]
 
@@ -19,13 +19,13 @@ Short summary on functionality and used technologies.
 
 ## Prerequisites
 
-> Any special pre-requisites?
+No prerequisites required.
 
 ## Solution
 
-| Solution    | Author(s)                                               |
-| ----------- | ------------------------------------------------------- |
-| folder name | Author details (name, company, twitter alias with link) |
+| Solution            | Author(s)                                               |
+| ------------------- | ------------------------------------------------------- |
+| sharepoint/solution | GCTools Team - Adi Makkar                               |
 
 ## Version history
 
@@ -45,20 +45,16 @@ Short summary on functionality and used technologies.
 - Clone this repository
 - Ensure that you are at the solution folder
 - in the command-line run:
+  - **gulp clean**
   - **npm install**
   - **gulp serve**
-
-> Include any additional steps as needed.
+- to build and package the solution for the app catalog
+  - **gulp build --ship**
+  - **gulp package-solution --ship**
 
 ## Features
 
-Description of the extension that expands upon high-level summary above.
-
-This extension illustrates the following concepts:
-
-- topic 1
-- topic 2
-- topic 3
+The extension is solely responsible for removing the share button from the nav bar. 
 
 > Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
 
