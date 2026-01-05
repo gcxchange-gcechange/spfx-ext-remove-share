@@ -8,7 +8,7 @@ spfx-ext-remove-share is an extensions that is responsible for removing the shar
 
 ## Used SharePoint Framework Version
 
-![version](https://img.shields.io/badge/version-1.19.0-green.svg)
+![version](https://img.shields.io/badge/version-1.21.1-green.svg)
 
 ## Applies to
 
@@ -29,10 +29,11 @@ No prerequisites required.
 
 ## Version history
 
-| Version | Date             | Comments        |
-| ------- | ---------------- | --------------- |
-| 1.1     | March 10, 2021   | Update comment  |
-| 1.0     | January 29, 2021 | Initial release |
+| Version | Date              | Comments        |
+| ------- | ----------------  | --------------- |
+| 1.2     | December 10, 2025 | Update SPFX     |
+| 1.1     | March 10, 2021    | Update comment  |
+| 1.0     | January 29, 2021  | Initial release |
 
 ## Disclaimer
 
